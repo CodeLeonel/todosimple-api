@@ -1,16 +1,19 @@
 package com.hugoleonel.todosimple.services;
 
 import java.lang.module.FindException;
+import java.util.List;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.hugoleonel.todosimple.models.Task;
 import com.hugoleonel.todosimple.models.User;
 import com.hugoleonel.todosimple.repositories.TaskRepository;
 
+@Service
 public class TaskService {
     
     @Autowired
@@ -19,12 +22,20 @@ public class TaskService {
     @Autowired
     private UserService userService;
 
-    public Task finById(Long id) {
+    public Task findById(Long id) {
 
         Optional<Task> task = this.taskRepository.findById(id);
         return task.orElseThrow(() -> new RuntimeException(
             "Tarefa não encontrada Id: " + id + ", Tipo: " + Task.class.getName()));
     
+    }
+
+    public List<Task> findAllByUserId(Long userId) {
+        
+        List<Task> tasks = this.taskRepository.findByUser_Id(userId);
+        
+        return tasks;
+
     }
 
     @Transactional
@@ -37,13 +48,13 @@ public class TaskService {
     }
 
     public Task update(Task task) {
-        Task newTask = finById(task.getId());
+        Task newTask = findById(task.getId());
         newTask.setDescription(task.getDescription());
         return this.taskRepository.save(newTask);
     }
 
     public void delete(Long id){
-        finById(id);
+        findById(id);
         try {
             this.taskRepository.deleteById(id);
         } catch (Exception e) {
