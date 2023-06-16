@@ -1,12 +1,16 @@
 package com.hugoleonel.todosimple.services;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.hugoleonel.todosimple.models.User;
+import com.hugoleonel.todosimple.models.enums.ProfileEnum;
 import com.hugoleonel.todosimple.repositories.UserRepository;
 import com.hugoleonel.todosimple.services.exceptions.DataBindingViolationException;
 import com.hugoleonel.todosimple.services.exceptions.ObjectNotFoundException;
@@ -14,6 +18,9 @@ import com.hugoleonel.todosimple.services.exceptions.ObjectNotFoundException;
 @Service
 public class UserService {
     
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
     @Autowired
     private UserRepository userRepository;
 
@@ -28,6 +35,8 @@ public class UserService {
     @Transactional
     public User create(User user) {
         user.setId(null);
+        user.setPassword(this.bCryptPasswordEncoder.encode(user.getPassword()));
+        user.setProfiles(Stream.of(ProfileEnum.USER.getCode()).collect(Collectors.toSet()));
         user = this.userRepository.save(user);
         return user;
     }
@@ -35,7 +44,7 @@ public class UserService {
     @Transactional
     public User update(User user) {
         User userToUpdate = findById(user.getId());
-        userToUpdate.setPassword(user.getPassword());
+        userToUpdate.setPassword(this.bCryptPasswordEncoder.encode(user.getPassword()));
         return this.userRepository.save(userToUpdate);
     }
 
