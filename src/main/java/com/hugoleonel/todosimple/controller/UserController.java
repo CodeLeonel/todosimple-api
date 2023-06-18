@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.hugoleonel.todosimple.models.User;
-import com.hugoleonel.todosimple.models.User.CreateUser;
-import com.hugoleonel.todosimple.models.User.UpdateUser;
+import com.hugoleonel.todosimple.models.dto.UserCreateDTO;
+import com.hugoleonel.todosimple.models.dto.UserUpdateDTO;
 import com.hugoleonel.todosimple.services.UserService;
 
 @RestController
@@ -40,20 +40,23 @@ public class UserController {
 
 
     @PostMapping
-    @Validated(CreateUser.class)
-    public ResponseEntity<Void> create(@Valid @RequestBody User user){
-        this.userService.create(user);
+   
+    public ResponseEntity<Void> create(@Valid @RequestBody UserCreateDTO dto){
         
+        User user = this.userService.fromDTO(dto);
+        
+        User newUser = this.userService.create(user);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest()
-        .path("/{id}").buildAndExpand(user.getId()).toUri();
+        .path("/{id}").buildAndExpand(newUser.getId()).toUri();
 
         return ResponseEntity.created(uri).build();
     }
 
     @PutMapping("/{id}")
-    @Validated(UpdateUser.class)
-    public ResponseEntity<Void> update(@Valid @RequestBody User user, @PathVariable Long id) {
-        user.setId(id);
+  
+    public ResponseEntity<Void> update(@Valid @RequestBody UserUpdateDTO dto, @PathVariable Long id) {
+        dto.setId(id);
+        User user = this.userService.fromDTO(dto);
         this.userService.update(user);
         return ResponseEntity.noContent().build();
     }
